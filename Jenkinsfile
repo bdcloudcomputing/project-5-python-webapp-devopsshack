@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('git-checkout') {
             steps {
-                git 'https://github.com/bpsod10/secretsanta-generator.git'
+                git branch: 'main', url: 'https://github.com/bdcloudcomputing/project-5-python-webapp-devopsshack.git'
             }
         }
 
