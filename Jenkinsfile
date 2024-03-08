@@ -20,10 +20,9 @@ pipeline {
         }
         
          
-		stage('OWASP Dependency Check') {
+		stage('trivy filescan') {
             steps {
-               dependencyCheck additionalArguments: ' --scan ./ ', odcInstallation: 'DP'
-                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                    sh "trivy fs --format json -o trivy-repofilesscan-report.json ."
             }
         }
 
@@ -41,7 +40,7 @@ pipeline {
             steps {
                script{
                    withDockerRegistry(credentialsId: 'docker-cred') {
-                    sh "docker build -t python-webapp . "
+                    sh "make image"
                  }
                }
             }
@@ -51,8 +50,7 @@ pipeline {
             steps {
                script{
                    withDockerRegistry(credentialsId: 'docker-cred') {
-                    sh "docker tag python-webapp bpsod10/python-webapp:latest"
-                    sh "docker push bpsod10/python-webapp:latest"
+                     sh "make push"
                  }
                }
             }
@@ -68,7 +66,7 @@ pipeline {
 
         stage('k8s deploy') {
             steps {
-               withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8s-secret-token', namespace: '', restrictKubeConfigAccess: false, serverUrl: 'https://44.200.116.37:6443') {
+               withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8s-secret-token', namespace: 'devops', restrictKubeConfigAccess: false, serverUrl: 'https://3.231.94.6:6443') {
                 sh 'kubectl apply -f python-k8.yaml'
                 sh 'kubectl get svc'
                 }
@@ -77,29 +75,9 @@ pipeline {
         
         
         
-        
-        }
-        
-        //  post {
-        //     always {
-        //         emailext (
-        //             subject: "Pipeline Status: ${BUILD_NUMBER}",
-        //             body: '''<html>
-        //                         <body>
-        //                             <p>Build Status: ${BUILD_STATUS}</p>
-        //                             <p>Build Number: ${BUILD_NUMBER}</p>
-        //                             <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
-        //                         </body>
-        //                     </html>''',
-        //             to: 'bpsod10@gmail.com',
-        //             from: 'jenkins@example.com',
-        //             replyTo: 'jenkins@example.com',
-        //             mimeType: 'text/html'
-        //         )
-        //     }
-        // }
-		
-		
 
+		
+		
+    }
     
 }
