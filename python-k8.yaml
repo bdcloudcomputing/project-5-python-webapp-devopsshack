@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-webapp-deployment
+spec:
+  selector:
+    matchLabels:
+      app: python-webapp-k8s
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: python-webapp-k8s
+    spec:
+      containers:
+        - name: python-webapp-k8s
+          image: bpsod10/python-webapp:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          resources:
+            requests:
+              memory: 1Gi
+              cpu: 1000m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-webapp-k8-svc
+spec:
+  selector:
+    app: python-webapp-k8s
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  type: NodePort
